@@ -31,10 +31,11 @@ def get_embeddings(model, val_set):
     model.eval()
     val_dataloader = DataLoader(val_set, batch_size=20)
     embeddings = []
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
     with tqdm(val_dataloader) as tepoch:
         for imgs, _ in tepoch:
             with torch.no_grad():
-                out = model(imgs)
+                out = model(imgs.to(device))
             embeddings.extend(out.cpu().numpy())
     embeddings = np.array(embeddings)
     return embeddings
@@ -44,7 +45,7 @@ def get_dist(current_embeddings, all_embeddings, k = 10):
     idx = np.argsort(dist)[:k]
     return idx
 
-def visualise(model, dataset, embeddings= None,  input_idx = 0, k = 10):
+def visualise(model, dataset, embeddings= None, cmap = "gray",  input_idx = 0, k = 10):
     if embeddings is None:
         embeddings = get_embeddings(model, dataset)
     idx = get_dist(embeddings, embeddings[input_idx], k)
@@ -52,10 +53,16 @@ def visualise(model, dataset, embeddings= None,  input_idx = 0, k = 10):
     columns = 2
     rows = int((k+2)/2)
     fig.add_subplot(rows, columns, 1)
-    plot_input_img = plt.imshow(dataset[input_idx][0].squeeze(), cmap = "gray")
+    if cmap == "gray":
+        plot_input_img = plt.imshow(dataset[input_idx][0].squeeze(), cmap = cmap)
+    else:
+        plot_input_img = plt.imshow(dataset[input_idx][0].permute(1,2,0).squeeze(), cmap = cmap)
     for i in range(3, k+3):
         fig.add_subplot(rows, columns, i)
-        plt.imshow(dataset[idx[i-3]][0].squeeze(), cmap = "gray")  
+        if cmap == "gray":
+            plt.imshow(dataset[idx[i-3]][0].squeeze(), cmap = cmap)  
+        else:
+            plt.imshow(dataset[idx[i-3]][0].permute(1,2,0).squeeze(), cmap = cmap)
     plt.subplots_adjust(wspace=0.1, hspace=0.1)
     plt.show()
 

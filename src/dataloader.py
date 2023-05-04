@@ -25,18 +25,18 @@ def generate_train_set(train):
     return train_set
 
 class TripletLossDataset(Dataset):
-    def __init__(self, train_set = None, train=True, root = "data"):
+    def __init__(self, train_set = None, train=True, root = "data", dataset = "FashionMNIST"):
         
         self.is_train = train
         
         if self.is_train:  
             if train_set is None:  
-                train, _ = get_load_data(root = root)
+                train, _ = get_load_data(root = root, dataset = dataset)
                 self.train_set = generate_train_set(train)
             else:
                 self.train_set = train_set
         else:
-            _, self.test = get_load_data(root = root)
+            _, self.test = get_load_data(root = root, dataset = dataset)
         
     def __len__(self):
         if self.is_train: 
